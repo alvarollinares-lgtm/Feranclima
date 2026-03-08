@@ -188,8 +188,13 @@ const Footer = () => {
 const App = () => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [avisos, setAvisos] = useState<Aviso[]>(() => {
-    const saved = localStorage.getItem('avisos');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('avisos');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error('Error parsing avisos from localStorage:', e);
+      return [];
+    }
   });
 
   useEffect(() => {
