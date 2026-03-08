@@ -22,8 +22,9 @@ const Chatbot: React.FC<ChatbotProps> = ({ onNewAviso }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Initialize Gemini API
-  const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY });
+  // Initialize Gemini API lazily or handle undefined
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
+  const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -96,6 +97,12 @@ const Chatbot: React.FC<ChatbotProps> = ({ onNewAviso }) => {
     setIsLoading(true);
 
     try {
+      if (!ai) {
+        setMessages(prev => [...prev, { role: 'model', text: 'Lo siento, el servicio de asistencia no está disponible en este momento (Falta clave API).' }]);
+        setIsLoading(false);
+        return;
+      }
+
       // Build conversation history for context
       const historyText = messages.map(m => `${m.role === 'user' ? 'Cliente' : 'Sara'}: ${m.text}`).join('\n');
       const prompt = `
