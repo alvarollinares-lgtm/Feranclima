@@ -22,9 +22,14 @@ const Chatbot: React.FC<ChatbotProps> = ({ onNewAviso }) => {
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
-  // Initialize Gemini API lazily or handle undefined
-  const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.GEMINI_API_KEY;
-  const ai = apiKey ? new GoogleGenAI({ apiKey }) : null;
+  // Initialize Gemini API
+  // Vite expone variables que empiezan por VITE_ en import.meta.env
+  const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+  
+  // Si en desarrollo/producción por algún motivo necesitamos fallback:
+  const finalApiKey = apiKey || (typeof process !== 'undefined' ? process.env?.VITE_GEMINI_API_KEY : '');
+  
+  const ai = finalApiKey ? new GoogleGenAI({ apiKey: finalApiKey }) : null;
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
