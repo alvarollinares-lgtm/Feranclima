@@ -76,8 +76,21 @@ async function startServer() {
     } else {
       const distPath = path.resolve(process.cwd(), 'dist');
       console.log(`📦 Running in production mode, serving static files from: ${distPath}`);
-      app.use(express.static(distPath));
+      app.use(express.static(distPath, {
+        setHeaders: (res, path) => {
+          if (path.endsWith('.html')) {
+            res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+          }
+        }
+      }));
+      
+      // Return 404 for missing assets instead of falling through to index.html
+      app.use('/assets', (req, res) => {
+        res.status(404).send('Not found');
+      });
+
       app.use((req, res) => {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
         res.sendFile(path.join(distPath, 'index.html'));
       });
     }
